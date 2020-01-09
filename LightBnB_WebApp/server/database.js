@@ -87,15 +87,21 @@ exports.getAllReservations = getAllReservations;
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
+
 const getAllProperties = function(options, limit = 10) {
-  pool
-    .query(
-      `
-        SELECT * AS all_properties FROM properties LIMIT $1
-      `, [limit])
-    .then(res => {
-      console.log(res.rows)
-    });
+  const queryString = `
+  SELECT properties.*, ROUND(avg(property_reviews.rating),1) as average_rating  
+  FROM properties 
+    JOIN property_reviews ON property_id = properties.id
+  GROUP BY properties.id 
+  LIMIT $1
+`;
+  return (
+    pool
+      .query(queryString, [limit])
+      .then(res => res.rows)
+      .catch(err => console.error(err))
+    );
 }
 exports.getAllProperties = getAllProperties;
 
