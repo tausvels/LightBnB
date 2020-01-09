@@ -1,8 +1,8 @@
-SELECT properties.*, avg(rating) as average_rating
+SELECT properties.title, avg(rating) as average_rating
 FROM reservations
 JOIN properties ON reservations.property_id = properties.id
 JOIN property_reviews ON properties.id = property_reviews.property_id 
-WHERE reservations.guest_id = 1
+WHERE reservations.guest_id = 100
 AND reservations.end_date < now()::date
 GROUP BY properties.id, reservations.id
 ORDER BY reservations.start_date
