@@ -149,8 +149,8 @@ const getAllProperties = function(options, limit = 10) {
     if (options.minimum_price_per_night && options.maximum_price_per_night) {
       counter += 2;
       console.log("string ?", Number.isInteger(options.maximum_price_per_night));
-      const min = (parseInt(options.minimum_price_per_night, base) * 100);
-      const max = (parseInt(options.maximum_price_per_night, base) * 100);
+      const min = (Number(options.minimum_price_per_night, base) * 100);
+      const max = (Number(options.maximum_price_per_night, base) * 100);
       queryParams.push(min);
       queryString += `AND cost_per_night >= $${queryParams.length} 
       `;
