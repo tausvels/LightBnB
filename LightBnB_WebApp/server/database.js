@@ -117,16 +117,66 @@ exports.getAllReservations = getAllReservations;
  */
 
 const getAllProperties = function(options, limit = 10) {
-  const queryString = `
-  SELECT properties.*, ROUND(avg(property_reviews.rating),1) as average_rating  
-  FROM properties 
-    JOIN property_reviews ON property_id = properties.id
-  GROUP BY properties.id 
-  LIMIT $1
-`;
+    const queryParams = [];
+    const base = 10;
+    let counter = 0;
+    let queryString = `
+      SELECT properties.*, avg(property_reviews.rating) as average_rating
+      FROM properties
+        JOIN property_reviews ON properties.id = property_reviews.property_id  
+    `;
+  
+    if (options.city) {
+      counter++;
+      queryParams.push(`%${options.city}%`);
+      queryString += `WHERE city ILIKE $${queryParams.length} 
+      `;
+    }
+  
+    if (options.owner_id) {
+      counter++;
+      queryParams.push(options.owner_id);
+      if (counter === 2) {
+        queryString += `AND owner_id = $${queryParams.length} 
+        `;
+        console.log("Got here!");
+      } else if (counter === 1) {
+        queryString += `WHERE owner_id = $${queryParams.length} 
+        `;
+      }
+    }
+  
+    if (options.minimum_price_per_night && options.maximum_price_per_night) {
+      counter += 2;
+      console.log("string ?", Number.isInteger(options.maximum_price_per_night));
+      const min = (parseInt(options.minimum_price_per_night, base) * 100);
+      const max = (parseInt(options.maximum_price_per_night, base) * 100);
+      queryParams.push(min);
+      queryString += `AND cost_per_night >= $${queryParams.length} 
+      `;
+      queryParams.push(max);
+      queryString += `AND cost_per_night <= $${queryParams.length} 
+      `;
+    }
+  
+    queryString += `GROUP BY properties.id
+    `;
+  
+    if (options.minimum_rating) {
+      counter++;
+      queryParams.push(options.minimum_rating);
+      queryString += `HAVING AVG(property_reviews.rating) >= $${queryParams.length} 
+      `;
+    }
+  
+    queryParams.push(limit);
+    queryString += `ORDER BY cost_per_night
+    LIMIT $${queryParams.length};
+    `;
+    
   return (
     pool
-      .query(queryString, [limit])
+      .query(queryString, queryParams)
       .then(res => res.rows)
       .catch(err => console.error(err))
     );
