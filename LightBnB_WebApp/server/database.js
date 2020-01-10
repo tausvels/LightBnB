@@ -1,24 +1,18 @@
-const properties = require('./json/properties.json');
-const users = require('./json/users.json');
-const { Pool } = require('pg');
+// const properties = require('./json/properties.json');
+// const users = require('./json/users.json');
 
 //---- CONNECTING TO DB ----------- //
-const pool = new Pool({
-  user: 'vagrant',
-  password: '123',
-  host: 'localhost',
-  database: 'lightbnb'
-})
+  const db = require('../db/index');
 ///--------- TEST RUN --------------- //
 /*
 const queryString = `SELECT reservations.* as all_propperties FROM reservations LIMIT 5`;
-pool
+db
   .query(queryString)
   .then(res => {
     res.rows.forEach(item => {
       console.log(item);
     })
-    pool.end();
+    db.end();
   })
   .catch((err) => console.error(err));
 */
@@ -36,7 +30,7 @@ const getUserWithEmail = function(email) {
   WHERE users.email = $1
 `;
   return (
-    pool
+    db
       .query(queryString, [email])
       .then(res => res.rows[0])
       .catch(err => console.error(err))
@@ -52,7 +46,7 @@ exports.getUserWithEmail = getUserWithEmail;
 const getUserWithId = function(id) {
  const queryString = `SELECT * FROM users WHERE users.id = $1`;
  return (
-   pool
+   db
      .query(queryString, [id])
      .then(res => res.rows[0])
      .catch(err => console.error(err))
@@ -69,7 +63,7 @@ exports.getUserWithId = getUserWithId;
 const addUser =  function(user) {
  const queryString = `INSERT INTO users (name, email, password) VALUES($1,$2,$3) RETURNING *`;
  return (
-   pool
+   db
     .query(queryString, [user.name, user.email, user.password])
     .then(res => res.rows[0])
     .catch(err => console.error(err))
@@ -99,7 +93,7 @@ const getAllReservations = function(guest_id, limit = 10) {
     LIMIT $2;
   `;
   return (
-    pool
+    db
     .query(queryString, [guest_id, limit])
     .then(res => res.rows)
     .catch(err => console.error(err))
@@ -175,7 +169,7 @@ const getAllProperties = function(options, limit = 10) {
     `;
 
   return (
-    pool
+    db
       .query(queryString, queryParams)
       .then(res => res.rows)
       .catch(err => console.error(err))
@@ -222,7 +216,7 @@ const addProperty = function(property) {
     RETURNING *
   `;
   return (
-    pool
+    db
       .query(queryString, propParam)
       .then(res => res.rows[0])
       .then(res => console.log('Listing successfully created'))
